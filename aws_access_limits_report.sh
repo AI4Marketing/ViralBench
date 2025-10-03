@@ -43,7 +43,7 @@ echo "[INFO] Account ID: ${account_id}" | tee -a "${OUT_DIR}/_log.txt"
 echo "[INFO] Caller ARN: ${caller_arn}" | tee -a "${OUT_DIR}/_log.txt"
 
 echo "[STEP] IAM list-account-aliases" | tee -a "${OUT_DIR}/_log.txt"
-aws iam list-account-aliases > "${OUT_DIR}/iam_list_account_aliases.json"
+aws iam list-account-aliases > "${OUT_DIR}/iam_list_account_aliases.json" || true
 
 # Determine principal type and canonical IAM principal ARN for simulation
 principal_type="unknown"
@@ -74,15 +74,15 @@ echo "[INFO] Simulation principal ARN: ${simulation_principal_arn}" | tee -a "${
 echo "[STEP] Dump principal details" | tee -a "${OUT_DIR}/_log.txt"
 case "${principal_type}" in
   user)
-    aws iam get-user --user-name "${principal_name}" > "${OUT_DIR}/iam_get_user.json"
-    aws iam list-attached-user-policies --user-name "${principal_name}" > "${OUT_DIR}/iam_list_attached_user_policies.json"
-    aws iam list-user-policies --user-name "${principal_name}" > "${OUT_DIR}/iam_list_user_policies.json"
-    aws iam list-groups-for-user --user-name "${principal_name}" > "${OUT_DIR}/iam_list_groups_for_user.json"
+    aws iam get-user --user-name "${principal_name}" > "${OUT_DIR}/iam_get_user.json" || true
+    aws iam list-attached-user-policies --user-name "${principal_name}" > "${OUT_DIR}/iam_list_attached_user_policies.json" || true
+    aws iam list-user-policies --user-name "${principal_name}" > "${OUT_DIR}/iam_list_user_policies.json" || true
+    aws iam list-groups-for-user --user-name "${principal_name}" > "${OUT_DIR}/iam_list_groups_for_user.json" || true
     ;;
   role)
-    aws iam get-role --role-name "${principal_name}" > "${OUT_DIR}/iam_get_role.json"
-    aws iam list-attached-role-policies --role-name "${principal_name}" > "${OUT_DIR}/iam_list_attached_role_policies.json"
-    aws iam list-role-policies --role-name "${principal_name}" > "${OUT_DIR}/iam_list_role_policies.json"
+    aws iam get-role --role-name "${principal_name}" > "${OUT_DIR}/iam_get_role.json" || true
+    aws iam list-attached-role-policies --role-name "${principal_name}" > "${OUT_DIR}/iam_list_attached_role_policies.json" || true
+    aws iam list-role-policies --role-name "${principal_name}" > "${OUT_DIR}/iam_list_role_policies.json" || true
     ;;
   *)
     echo "[WARN] Unknown principal type; skipping entity-specific dumps" | tee -a "${OUT_DIR}/_log.txt"
@@ -135,7 +135,7 @@ fi
 
 # Dump full account IAM auth details (can be large)
 echo "[STEP] IAM get-account-authorization-details (may take time)" | tee -a "${OUT_DIR}/_log.txt"
-aws iam get-account-authorization-details > "${OUT_DIR}/iam_account_authorization_details.json"
+aws iam get-account-authorization-details > "${OUT_DIR}/iam_account_authorization_details.json" || true
 
 # Service Quotas for selected services across regions
 services=(
@@ -181,12 +181,14 @@ for region in "${regions[@]}"; do
   # This uses CloudTrail Lake if available; ignore errors otherwise
   start_time_iso="$(date -u -v-7d '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date -u -d '7 days ago' '+%Y-%m-%dT%H:%M:%SZ')"
   end_time_iso="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-  query='SELECT eventTime, eventSource, eventName, errorCode, errorMessage, userIdentity.type, userIdentity.arn FROM aws_cloudtrail_events WHERE errorCode LIKE "%AccessDenied%" AND eventTime BETWEEN "${start}" AND "${end}" ORDER BY eventTime DESC LIMIT 200'
+  query_template='SELECT eventTime, eventSource, eventName, errorCode, errorMessage, userIdentity.type, userIdentity.arn FROM aws_cloudtrail_events WHERE errorCode LIKE "%AccessDenied%" AND eventTime BETWEEN "${start}" AND "${end}" ORDER BY eventTime DESC LIMIT 200'
   # Try to run against default event data store if configured
   if aws --region "${region}" cloudtrail list-event-data-stores >/dev/null 2>&1; then
     ds_arn="$(aws --region "${region}" cloudtrail list-event-data-stores | jq -r '.EventDataStores[0].EventDataStoreArn // empty')"
     if [ -n "${ds_arn}" ]; then
-      qid="$(aws --region "${region}" cloudtrail start-query --event-data-store "${ds_arn}" --query-string "${query//\${start}/${start_time_iso}}" --query-string "${query//\${end}/${end_time_iso}}" 2>/dev/null | jq -r '.QueryId // empty' || true)"
+      full_query="${query_template//\${start}/${start_time_iso}}"
+      full_query="${full_query//\${end}/${end_time_iso}}"
+      qid="$(aws --region "${region}" cloudtrail start-query --event-data-store "${ds_arn}" --query-string "${full_query}" 2>/dev/null | jq -r '.QueryId // empty' || true)"
       if [ -n "${qid}" ]; then
         # Poll briefly
         for i in {1..10}; do
