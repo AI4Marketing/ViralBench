@@ -1,6 +1,0 @@
-[INFO] Writing output to: aws_access_report_20251003-140112
-[INFO] Regions: us-east-1 us-west-2
-[STEP] STS get-caller-identity
-[INFO] Account ID: 985539766686
-[INFO] Caller ARN: arn:aws:iam::985539766686:user/cogsci
-[STEP] IAM list-account-aliases
