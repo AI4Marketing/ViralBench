@@ -1,0 +1,55 @@
+=== EC2 Capabilities ===
+=== S3 Capabilities ===
+=== Lambda Capabilities ===
+=== RDS Capabilities ===
+=== DynamoDB Capabilities ===
+=== ECS/EKS/ECR Capabilities ===
+=== CloudFormation Capabilities ===
+=== API Gateway Capabilities ===
+=== SNS/SQS Capabilities ===
+=== CloudWatch Capabilities ===
+=== Secrets Manager / Systems Manager ===
+Analyzing results...
+
+Total tests run: 35
+✓ Allowed operations: 2
+✗ Denied operations: 33
+
+=== ALLOWED OPERATIONS ===
+  ✓ s3:list_buckets - List S3 buckets
+  ✓ s3:create_bucket - Create S3 bucket
+
+=== DENIED OPERATIONS ===
+  ✗ ec2:describe_instances - List EC2 instances
+  ✗ ec2:describe_regions - List available regions
+  ✗ ec2:describe_vpcs - List VPCs
+  ✗ ec2:describe_security_groups - List security groups
+  ✗ ec2:describe_images - List AMIs
+  ✗ ec2:run_instances - Launch EC2 instance (dry-run)
+  ✗ ec2:create_security_group - Create security group (dry-run)
+  ✗ ec2:allocate_address - Allocate Elastic IP (dry-run)
+  ✗ s3:head_bucket - Access CloudTrail bucket
+  ✗ lambda:list_functions - List Lambda functions
+  ✗ lambda:create_function - Create Lambda function
+  ✗ rds:describe_db_instances - List RDS instances
+  ✗ rds:create_db_instance - Create RDS instance
+  ✗ dynamodb:list_tables - List DynamoDB tables
+  ✗ dynamodb:create_table - Create DynamoDB table
+  ✗ ecs:list_clusters - List ECS clusters
+  ✗ ecs:create_cluster - Create ECS cluster
+  ✗ eks:list_clusters - List EKS clusters
+  ✗ ecr:describe_repositories - List ECR repositories
+  ✗ ecr:create_repository - Create ECR repository
+  ✗ cloudformation:list_stacks - List CloudFormation stacks
+  ✗ cloudformation:create_stack - Create CloudFormation stack
+  ✗ apigateway:get_rest_apis - List REST APIs
+  ✗ apigatewayv2:get_apis - List HTTP APIs
+  ✗ sns:list_topics - List SNS topics
+  ✗ sns:create_topic - Create SNS topic
+  ✗ sqs:list_queues - List SQS queues
+  ✗ sqs:create_queue - Create SQS queue
+  ✗ cloudwatch:list_metrics - List CloudWatch metrics
+  ✗ logs:describe_log_groups - List CloudWatch log groups
+  ✗ secretsmanager:list_secrets - List secrets
+  ✗ ssm:describe_parameters - List SSM parameters
+  ✗ ssm:get_parameter - Get public SSM parameter

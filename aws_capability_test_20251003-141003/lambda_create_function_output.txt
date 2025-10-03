@@ -1,0 +1,3 @@
+
+--zip-file must be a zip file with the fileb:// prefix.
+Example usage:  --zip-file fileb://path/to/file.zip
